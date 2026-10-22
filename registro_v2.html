@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro SIINCITI 2026</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        /* Colores institucionales TecNM: Azul #1B396A, Naranja #E44B31 */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px; 
+            background-color: #f4f6f9;
+            color: #333;
+            margin: 0;
+        }
+        h2 {
+            color: #1B396A;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #reader { 
+            width: 100%; 
+            max-width: 400px; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            margin-top: 15px; 
+            border: 2px solid #1B396A;
+            background-color: #fff;
+        }
+        .form-group {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            color: #1B396A;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+        select, button {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        select {
+            border: 1px solid #ccc;
+            background-color: #fff;
+            color: #333;
+            appearance: auto; /* Garantiza el menú nativo en móviles */
+        }
+        select:focus {
+            outline: none;
+            border-color: #1B396A;
+        }
+        button { 
+            background-color: #E44B31; 
+            color: white; 
+            border: none; 
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        button:disabled { 
+            background-color: #cccccc; 
+            color: #666666;
+            cursor: not-allowed; 
+        }
+        button:not(:disabled):hover {
+            background-color: #c93d26;
+        }
+        #status { 
+            margin-top: 20px; 
+            font-weight: bold; 
+            text-align: center; 
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+        .status-waiting { color: #1B396A; background-color: #e2e8f0; }
+        .status-scanning { color: #856404; background-color: #fff3cd; }
+        .status-success { color: #155724; background-color: #d4edda; }
+        .status-error { color: #721c24; background-color: #f8d7da; }
+    </style>
+</head>
+<body>
+
+    <h2>SIINCITI 2026</h2>
+    <div class="subtitle">Seminario Interdisciplinario de Investigación</div>
+    
+    <div class="form-group">
+        <label for="eventoSelect">Selecciona la actividad:</label>
+        <select id="eventoSelect">
+            <option value="" disabled selected>-- Toca para elegir una actividad --</option>
+            
+            <optgroup label="Día 1 - 02 de Diciembre">
+                <option value="Día 1 - Coloquio 1">Coloquio 1</option>
+                <option value="Día 1 - Coloquio 2">Coloquio 2</option>
+                <option value="Día 1 - Conferencia Magistral">Conferencia Magistral</option>
+                <option value="Día 1 - Inauguración">Protocolo de Inauguración</option>
+                <option value="Día 1 - Expo de Proyectos">Visita Guiada / Expo</option>
+            </optgroup>
+            
+            <optgroup label="Día 2 - 03 de Diciembre">
+                <option value="Día 2 - Coloquio 1">Coloquio 1</option>
+                <option value="Día 2 - Coloquio 2">Coloquio 2</option>
+                <option value="Día 2 - Conferencia Magistral">Conferencia Magistral</option>
+                <option value="Día 2 - Concursos">Concursos</option>
+            </optgroup>
+            
+            <optgroup label="Día 3 - 04 de Diciembre">
+                <option value="Día 3 - Coloquio 1">Coloquio 1</option>
+                <option value="Día 3 - Coloquio 2">Coloquio 2</option>
+                <option value="Día 3 - Talleres">Talleres</option>
+                <option value="Día 3 - Clausura">Protocolo de Clausura</option>
+            </optgroup>
+        </select>
+    </div>
+
+    <button id="startButton" disabled>Nuevo Registro</button>
+    
+    <div id="reader"></div>
+    <div id="status" class="status-waiting">Selecciona un evento para comenzar.</div>
+
+    <script>
+        // ¡IMPORTANTE! Pega tu URL de Apps Script aquí
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbwjtot9cVKpYw6y_L9rVDw6VSXbmyiOEBtkMSib7KaWNS1QD1zmAqNvI2ookmWg3Aab3g/exec'; 
+        
+        const html5QrCode = new Html5Qrcode("reader");
+        const eventoSelect = document.getElementById('eventoSelect');
+        const startButton = document.getElementById('startButton');
+        const statusDiv = document.getElementById('status');
+
+        eventoSelect.addEventListener('change', () => {
+            startButton.disabled = false;
+            statusDiv.className = "status-waiting";
+            statusDiv.innerText = "Actividad seleccionada. Listo para escanear.";
+        });
+
+        startButton.addEventListener('click', () => {
+            statusDiv.className = "status-scanning";
+            statusDiv.innerText = "Escaneando... enfoca el código QR.";
+            
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 250 } }, 
+                (decodedText) => {
+                    html5QrCode.stop().then(() => { 
+                        statusDiv.innerText = "QR detectado. Guardando...";
+                        enviarDatos(decodedText, eventoSelect.value);
+                    });
+                },
+                (errorMessage) => {}
+            ).catch(err => {
+                statusDiv.className = "status-error";
+                statusDiv.innerText = "Error: Verifica los permisos de la cámara.";
+            });
+        });
+
+        function enviarDatos(textoQR, eventoSeleccionado) {
+            fetch(scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ 
+                    qr_data: textoQR, 
+                    evento: eventoSeleccionado 
+                })
+            })
+            .then(() => {
+                statusDiv.className = "status-success";
+                statusDiv.innerText = "¡Asistencia registrada!\n" + textoQR;
+            })
+            .catch(error => {
+                statusDiv.className = "status-error";
+                statusDiv.innerText = "Error de red al guardar en la nube.";
+            });
+        }
+    </script>
+</body>
+</html>
